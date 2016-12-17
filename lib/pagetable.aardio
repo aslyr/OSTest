@@ -1,0 +1,135 @@
+﻿
+namespace pagetable{
+	import console;
+	class pageta{
+		ctor( num,size ){
+			var page = {};
+			var ram = {};
+			var pronum = 0;
+			for(i=1;num;1){
+				ram[i] = null;
+			}
+			
+		};
+		/*对象的所有成员必须用分号分隔*/
+		//添加进程
+		add = function(name,num){
+			..table.push(page,{name = name;num = num});
+			pronum += 1;
+			for(k,v in page){
+				if(v.name == name){
+					for(i=1;num;1){
+						v[i] = null;
+					}					
+				}
+			}	
+		}
+		//内存请求
+		apply = function(name,applynum){
+			for(k,v in page){
+				//..console.dump(v);
+				if(v.name == name){
+					if(v.num < applynum){
+						this.outofrange(name);//发生越界中断
+					}
+					elseif(v[applynum] == null){//页表该项为空
+						var pos = this.misspage(name,applynum);//发生缺页中断
+						v[applynum] = pos;
+					}
+					else {
+						..console.log("内存请求成功！");
+					}
+										
+				}
+			}
+			this.print();	
+		}
+		//越界中断处理程序
+		outofrange = function(name){
+			..console.log("进程"++name++"越界中断");
+		}
+		//缺页中断处理子程序
+		misspage = function(name,applynum){
+			..console.log("内存请求失败！正在调用缺页中断程序...");
+			if(!this.isramfull()){//如果内存未满还有空闲
+				while(true){
+					var ran = ..math.random(1, num);
+					//..console.log(ran);
+					if(ram[ran] == null){
+						ram[ran] = name ++ tostring(applynum);
+						return ran;
+					}
+				}
+			} 
+			else {//如果内存满了则调用替换程序
+				this.translate(name,applynum);
+			}
+			
+		}
+		//判断页表是否为满？
+		isramfull = function(){
+			for(i=1;num;1){
+				if(ram[i] == null){
+					//..console.log("no full");
+					return false;
+				}
+			
+			}
+			//..console.log("full");	
+			return true;
+		}
+		//替换程序
+		translate = function(name,applynum){
+			
+		}
+		//打印页表
+		print = function(){
+			..console.dump(page);
+			for(k,v in page){
+				var result = "";
+				..console.log("页表"++v.name);
+				for(i=1;v.num;1){
+					result = result ++ tostring(v[i])++'\t';
+				}	
+				..console.log(result++'\n');
+			}	
+			..console.log("内存存储情况：");
+			var result = "";
+			for(i=1;num/5;1){
+				for(j=1;5;1){
+					result = result ++ tostring(ram[j + (i - 1)*5])++'\t';
+				}
+				result = result ++ '\n';
+			}	
+			..console.log(result);
+		}
+		//进程释放
+		free = function(name){
+			for(i=1;pronum;1){
+				if(page[i].name == name){
+					for(j=1;page[i].num;1){
+						if(page[i][j]){
+							ram[page[i][j]] = null;
+						}
+					}	
+				}	
+			}
+			..table.remove(page,i);
+			..console.log("进程"++name++"释放成功！");
+		}
+		
+		
+	}
+	var test = pageta(20,2);
+	test.add("A",3);
+	test.add("B",5);
+	test.apply("A",4);
+	//test.print();
+	test.apply("A",2);
+	test.apply("A",2);
+	test.apply("B",4);
+	test.apply("B",3);
+	test.free("A");
+	test.apply("B",4);
+	..console.pause();
+}

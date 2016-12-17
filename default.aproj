@@ -4,5 +4,6 @@
 	<folder name="资源文件" path="res" embed="true">
 		<file name="test.aardio" path="res\test.aardio" comment="res\test.aardio"/>
 		<file name="test2.aardio" path="res\test2.aardio" comment="res\test2.aardio"/>
+		<file name="test3.aardio" path="res\test3.aardio" comment="res\test3.aardio"/>
 	</folder>
 </project>
