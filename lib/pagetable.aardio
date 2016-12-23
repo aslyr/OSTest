@@ -5,17 +5,63 @@ namespace pagetable{
 		ctor( num,size ){
 			var page = {};
 			var ram = {};
+			var applylist = "";//这里用table插入会出现问题（无法重复）
+			var replacelist = "";//所以这里用字符串保存请求和替换序列
 			var pronum = 0;
+			var applynumber = 0.0;
+			var missnum = 0;
+			var menu = '***************内存模拟系统****************\n1.创建进程\n2.进程申请\n3.进程撤销\n4.显示当前状态\n5.退出系统\n';
 			for(i=1;num;1){
 				ram[i] = null;
 			}
-			
+			..console.log("内存模拟创建成功！");
+			..console.log("内存页面数："++tostring(num)++",页面大小："++tostring(size));
 		};
 		/*对象的所有成员必须用分号分隔*/
+		//显示菜单
+		showmenu = function(){
+			..console.log(menu);
+		}
+		//接受用户输入，变为动态运行程序，不过并没有加入验证处理
+		accept = function(){
+			var input = null;
+			while(input != 5){
+				this.showmenu();
+				input = tonumber(..console.getText( "请输入选项:" ));
+				select(input) {
+					case 1 {
+						var inputname = ..console.getText( "请输入进程名:" );
+						var inputnum = tonumber(..console.getText( "请输入进程申请块数:" ));
+						this.add(inputname,inputnum);
+					}
+					case 2 {
+						var inputname = ..console.getText( "请输入进程名:" );
+						var inputadd = tonumber(..console.getText( "请输入进程逻辑地址:" ));
+						this.apply(inputname,inputadd);
+					}
+					case 3 {
+						var inputname = ..console.getText( "请输入进程名:" );
+						this.free(inputname);
+					}
+					case 4 {
+						this.print();
+					}
+					case 5 {
+					
+					}
+					else {
+						..console.log("请输入正确选项！");
+					}
+				}
+			}
+			
+		}
+		
 		//添加进程
 		add = function(name,num){
-			..table.push(page,{name = name;num = num});
+			..table.push(page,{name = name;num = num;});
 			pronum += 1;
+			..console.log("进程"++name++"创建成功！所需页面数："++tostring(num));
 			for(k,v in page){
 				if(v.name == name){
 					for(i=1;num;1){
@@ -26,23 +72,33 @@ namespace pagetable{
 		}
 		//内存请求
 		apply = function(name,applynum){
+			var oldadd = applynum;
+			..console.log("请求逻辑地址为："++name++" : "++oldadd);
+			applynum = ..math.floor(applynum/size) + 1;
 			for(k,v in page){
 				//..console.dump(v);
 				if(v.name == name){
-					if(v.num < applynum){
+					if(v.num*size - 1 < oldadd){
 						this.outofrange(name);//发生越界中断
 					}
 					elseif(v[applynum] == null){//页表该项为空
+						applynumber += 1;
 						var pos = this.misspage(name,applynum);//发生缺页中断
+						//..table.push(v.applylist,applynum);
+						//..table.insert(v.applylist,applynum);
+						//v.applylist[#v.applylist + 1] = applynum;
+						applylist = applylist ++ " "++v.name ++ tostring(applynum);
 						v[applynum] = pos;
+						..console.log("请求实际物理地址为：",(pos-1)*size + oldadd%size);
 					}
 					else {
+						applynumber += 1;
 						..console.log("内存请求成功！");
 					}
 										
 				}
 			}
-			this.print();	
+			//this.print();	
 		}
 		//越界中断处理程序
 		outofrange = function(name){
@@ -51,6 +107,7 @@ namespace pagetable{
 		//缺页中断处理子程序
 		misspage = function(name,applynum){
 			..console.log("内存请求失败！正在调用缺页中断程序...");
+			missnum += 1;
 			if(!this.isramfull()){//如果内存未满还有空闲
 				while(true){
 					var ran = ..math.random(1, num);
@@ -62,7 +119,8 @@ namespace pagetable{
 				}
 			} 
 			else {//如果内存满了则调用替换程序
-				this.translate(name,applynum);
+				..console.log("内存已满，正在调用替换程序...");
+				return this.translate(name,applynum);	
 			}
 			
 		}
@@ -80,11 +138,38 @@ namespace pagetable{
 		}
 		//替换程序
 		translate = function(name,applynum){
-			
+			var ran = ..math.random(1, num);
+			//..console.log(ran);
+			replacelist = replacelist ++ " "++ram[ran];
+			ram[ran] = name ++ tostring(applynum);
+			for(k,v in page){
+				for(i=1;v.num;1){
+					if(v[i] == ran){
+						v[i] = null;
+						return ran;
+					}
+				}
+			}
 		}
 		//打印页表
 		print = function(){
-			..console.dump(page);
+			//..console.dump(page);
+			..console.log("进程请求序列：",applylist);
+			..console.log("进程替换序列：",replacelist);
+			..console.log("缺页次数："++tostring(missnum));
+			..console.log(missnum,applynumber);
+			if(applynumber == 0){
+				..console.log("分配还没开始哦！");
+			}
+			else {
+				..console.printf("%s%.2f%%","缺页率：",missnum/applynumber*100);
+			}
+			
+			//..console.dumpJson(page);
+			for(k,v in page){
+				..console.log("进程名："++v.name ++"进程所需页数："++v.num);
+			}
+			
 			for(k,v in page){
 				var result = "";
 				..console.log("页表"++v.name);
@@ -95,13 +180,22 @@ namespace pagetable{
 			}	
 			..console.log("内存存储情况：");
 			var result = "";
-			for(i=1;num/5;1){
-				for(j=1;5;1){
-					result = result ++ tostring(ram[j + (i - 1)*5])++'\t';
-				}
-				result = result ++ '\n';
-			}	
+			if(num < 5){
+				for(i=1;num;1){
+					result = result ++ tostring(ram[i])++'\t';
+				}	
+			}
+			else {
+				for(i=1;num/5;1){
+					for(j=1;5;1){
+						result = result ++ tostring(ram[j + (i - 1)*5])++'\t';
+					}
+					result = result ++ '\n';
+				}	
+			}
+			
 			..console.log(result);
+			..console.log("***********************************************");
 		}
 		//进程释放
 		free = function(name){
@@ -115,21 +209,35 @@ namespace pagetable{
 				}	
 			}
 			..table.remove(page,i);
+			pronum -=1;
 			..console.log("进程"++name++"释放成功！");
 		}
 		
 		
 	}
-	var test = pageta(20,2);
+	/*
+var test = pageta(3,1024);
 	test.add("A",3);
 	test.add("B",5);
-	test.apply("A",4);
+	test.apply("A",4*1024);
 	//test.print();
-	test.apply("A",2);
-	test.apply("A",2);
-	test.apply("B",4);
-	test.apply("B",3);
+	test.apply("A",2*1024-1);
+	test.apply("A",3*1024);
+	test.apply("A",3*1024-1);
+	test.apply("A",2*1024-1);
+	test.apply("B",4*1024-1);
+	test.apply("B",3*1024-1);
 	test.free("A");
-	test.apply("B",4);
+	test.apply("B",4*1024-1);
+	test.apply("B",1*1024-1);
+	test.apply("B",2*1024-1);
+	test.apply("B",3*1024-1);
+	test.apply("B",5*1024-1);
+*/
+	..console.log("------------------页式管理程序---------------------");
+	var inputnum = tonumber(..console.getText( "请输入内存块数:" ));
+	var inputsize = tonumber(..console.getText( "请输入内存块大小:" ));
+	var test = pageta(inputnum,inputsize);
+	test.accept();
 	..console.pause();
 }
