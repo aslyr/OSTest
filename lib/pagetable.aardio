@@ -59,17 +59,47 @@ namespace pagetable{
 		
 		//添加进程
 		add = function(name,num){
-			..table.push(page,{name = name;num = num;});
-			pronum += 1;
-			..console.log("进程"++name++"创建成功！所需页面数："++tostring(num));
-			for(k,v in page){
-				if(v.name == name){
-					for(i=1;num;1){
-						v[i] = null;
-					}					
-				}
-			}	
+			var allottab,allotnum = this.allot(num);
+			if(allotnum){
+				pronum += 1;
+				..console.log("进程"++name++"创建成功！所需页面数："++tostring(num)
+				++"系统分配块数："++tostring(allotnum));
+				var newpro = {name = name;num = num;allotnum = allotnum;
+				allottab = allottab;applyorder = {};};
+				for(i=1;num;1){
+					newpro[i] = null;
+				}	
+				..table.push(page,newpro);
+			}
+			else {
+				..console.log("系统无空余内存块，分配失败！");
+			}		
 		}
+		//分配内存块
+		//若内存已满，则返回{}，0
+		//若内存未满，则返回实际块集，实际块数
+		allot = function(num){
+			var allotnum = ..math.floor(num /2) + 1;
+			var allotednum = 0;
+			var allottab = {};
+			for(i=1;allotnum;1){
+				if(!this.isramfull()){//如果内存未满还有空闲
+					while(true){
+						var ran = ..math.random(1, num);
+						//..console.log(ran);
+						if(ram[ran] == null){
+							//ram[ran] = name ++ tostring(applynum);
+							ram[ran] = "null";
+							allottab[i] = ran;
+							allotednum += 1;
+							break ;
+						}
+					}
+				}	
+			}
+			return allottab,allotednum; 	
+		}
+		
 		//内存请求
 		apply = function(name,applynum){
 			var oldadd = applynum;
@@ -81,25 +111,25 @@ namespace pagetable{
 					if(v.num*size - 1 < oldadd){
 						this.outofrange(name);//发生越界中断
 					}
-					elseif(v[applynum] == null){//页表该项为空
-						applynumber += 1;
-						var pos = this.misspage(name,applynum);//发生缺页中断
-						//..table.push(v.applylist,applynum);
-						//..table.insert(v.applylist,applynum);
-						//v.applylist[#v.applylist + 1] = applynum;
-						applylist = applylist ++ " "++v.name ++ tostring(applynum);
-						v[applynum] = pos;
-						..console.log("请求实际物理地址为：",(pos-1)*size + oldadd%size);
-					}
 					else {
+						if(v[applynum] == null){//页表该项为空
+							var pos = this.misspage(name,applynum);//发生缺页中断
+							..console.log("块号为：",pos);
+							applylist = applylist ++ " "++v.name ++ tostring(applynum);
+							v[applynum] = pos;
+							..console.log("请求实际物理地址为：",(pos-1)*size + oldadd%size);
+						}
+						else {
+							..console.log("内存请求成功！");
+						}
 						applynumber += 1;
-						..console.log("内存请求成功！");
-					}
-										
+						..table.push(v.applyorder,applynum);
+					}						
 				}
 			}
 			//this.print();	
 		}
+		
 		//越界中断处理程序
 		outofrange = function(name){
 			..console.log("进程"++name++"越界中断");
@@ -108,22 +138,33 @@ namespace pagetable{
 		misspage = function(name,applynum){
 			..console.log("内存请求失败！正在调用缺页中断程序...");
 			missnum += 1;
-			if(!this.isramfull()){//如果内存未满还有空闲
-				while(true){
-					var ran = ..math.random(1, num);
-					//..console.log(ran);
-					if(ram[ran] == null){
-						ram[ran] = name ++ tostring(applynum);
-						return ran;
-					}
-				}
-			} 
-			else {//如果内存满了则调用替换程序
-				..console.log("内存已满，正在调用替换程序...");
-				return this.translate(name,applynum);	
+			var allotblock = this.isallotfull(name,applynum);
+			if(allotblock){
+				return allotblock;
 			}
-			
+			else {
+				..console.log("分配内存已满，正在调用替换程序...");
+				//return this.allottran(name,applynum);
+				return this.allottran(name,applynum);
+			}					
 		}
+		//判断分配块集是否已满？
+		//若不满，则返回空闲块号
+		//若满，则返回0
+		isallotfull = function(name,applynum){
+			for(k,v in page){
+				if(v.name == name){
+					for(i=1;v.allotnum;1){
+						if(ram[v.allottab[i]] == null || ram[v.allottab[i]] == "null"){
+							ram[v.allottab[i]] = name ++ tostring(applynum);
+							return v.allottab[i]; 
+						}
+					}
+					return 0; 
+				}
+			}
+		}
+		
 		//判断页表是否为满？
 		isramfull = function(){
 			for(i=1;num;1){
@@ -136,6 +177,20 @@ namespace pagetable{
 			//..console.log("full");	
 			return true;
 		}
+		//分配替换
+		allottran = function(name,applynum){
+			for(k,v in page){
+				if(v.name == name){
+					var index = ..table.remove(v.applyorder);
+					//..console.log("index:",index);
+					replacelist = replacelist ++ " "++ram[v[index]];
+					ram[v[index]] = name ++ tostring(applynum);
+					v[index] = null;
+					return index; 
+				}
+			}
+		}
+		
 		//替换程序
 		translate = function(name,applynum){
 			var ran = ..math.random(1, num);
@@ -176,7 +231,11 @@ namespace pagetable{
 				for(i=1;v.num;1){
 					result = result ++ tostring(v[i])++'\t';
 				}	
-				..console.log(result++'\n');
+				result = result ++'\n内存分配块号：';
+				for(i=1;v.allotnum;1){
+					result = result ++ tostring(v.allottab[i])++'\t';
+				}
+				..console.log(result++'\n');	
 			}	
 			..console.log("内存存储情况：");
 			var result = "";
@@ -200,12 +259,11 @@ namespace pagetable{
 		//进程释放
 		free = function(name){
 			for(i=1;pronum;1){
-				if(page[i].name == name){
-					for(j=1;page[i].num;1){
-						if(page[i][j]){
-							ram[page[i][j]] = null;
-						}
-					}	
+				if(page[i].name == name){	
+					for(j=1;page[i].allotnum;1){
+						ram[page[i].allottab[j]] = null;
+					}
+					
 				}	
 			}
 			..table.remove(page,i);
@@ -235,9 +293,24 @@ var test = pageta(3,1024);
 	test.apply("B",5*1024-1);
 */
 	..console.log("------------------页式管理程序---------------------");
-	var inputnum = tonumber(..console.getText( "请输入内存块数:" ));
-	var inputsize = tonumber(..console.getText( "请输入内存块大小:" ));
-	var test = pageta(inputnum,inputsize);
-	test.accept();
+	//var inputnum = tonumber(..console.getText( "请输入内存块数:" ));
+	//var inputsize = tonumber(..console.getText( "请输入内存块大小:" ));
+	//var test = pageta(inputnum,inputsize);
+	//test.accept();
+	var test = pageta(3,1024);
+	test.add("A",3);
+	test.add("b",2);
+	test.apply("A",4*1024);
+	test.print();
+	test.apply("A",0*1024);
+	test.print();
+	test.apply("A",0*1024);
+	test.print();
+	test.apply("A",1*1024);
+	test.print();
+	test.apply("A",2*1024);
+	test.print();
+	test.free("A");
+	test.print();	
 	..console.pause();
 }
