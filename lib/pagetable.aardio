@@ -293,10 +293,11 @@ var test = pageta(3,1024);
 	test.apply("B",5*1024-1);
 */
 	..console.log("------------------页式管理程序---------------------");
-	//var inputnum = tonumber(..console.getText( "请输入内存块数:" ));
-	//var inputsize = tonumber(..console.getText( "请输入内存块大小:" ));
-	//var test = pageta(inputnum,inputsize);
-	//test.accept();
+	var inputnum = tonumber(..console.getText( "请输入内存块数:" ));
+	var inputsize = tonumber(..console.getText( "请输入内存块大小:" ));
+	var test = pageta(inputnum,inputsize);
+	test.accept();
+/*
 	var test = pageta(3,1024);
 	test.add("A",3);
 	test.add("b",2);
@@ -311,6 +312,7 @@ var test = pageta(3,1024);
 	test.apply("A",2*1024);
 	test.print();
 	test.free("A");
-	test.print();	
+	test.print();
+*/	
 	..console.pause();
 }

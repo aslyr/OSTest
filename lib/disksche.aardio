@@ -44,6 +44,7 @@ namespace disksche{
 		console.log("总磁道数为：",length);	
 	}
 	liftsche(list,50,-1);
+	
 	shortsche = function(mytable,position){
 		..console.log("最短优先算法：");
 		var length  = 0;
